@@ -4,7 +4,7 @@ import generateTokenAndSetCookie from "../utils/generateToken.js";
 
 export const signup = async (req, res) => {
     try {
-        const { firstName, lastName, username, password, confirmPassword, gender } = req.body;
+        const { firstName, lastName, email, username, password, confirmPassword, gender } = req.body;
 
         if (password != confirmPassword) {
             return res.status(400).json({ error: "Passwords do not match" });
@@ -22,7 +22,7 @@ export const signup = async (req, res) => {
         const defaultProfilePic = `https://avatar.iran.liara.run/username?username=${firstName}+${lastName}`;
 
         const newUser = new User({
-            firstName, lastName, username, password: hashedPassword, gender, profilePic: defaultProfilePic
+            firstName, lastName, username, email, password: hashedPassword, gender, profilePic: defaultProfilePic
         });
         generateTokenAndSetCookie(newUser._id, res);
         await newUser.save();
@@ -31,6 +31,7 @@ export const signup = async (req, res) => {
             _id: newUser._id,
             firstName: newUser.firstName,
             lastName: newUser.lastName,
+            email: newUser.email,
             username: newUser.username,
             profilePic: newUser.profilePic
         });
@@ -55,6 +56,7 @@ export const login = async (req, res) => {
             _id: user._id,
             firstName: user.firstName,
             lastName: user.lastName,
+            email: user.email,
             username: user.username,
             profilePic: user.profilePic
         });
