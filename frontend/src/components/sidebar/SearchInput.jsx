@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { IoSearchSharp } from "react-icons/io5";
-import useConversation from '../../zustand/useConversation';
+import { useSelector, useDispatch } from 'react-redux';
+import { setDisplayedConversations } from '../../redux/actions/conversationActions';
 import toast from 'react-hot-toast';
 
 const SearchInput = () => {
     const [search, setSearch] = useState("");
-    const { conversations, setDisplayedConversations } = useConversation();
+    let conversations = useSelector((state) => state.conversations);
+    const dispatch = useDispatch();
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!search) {
-            setDisplayedConversations(conversations);
+            dispatch(setDisplayedConversations(conversations));
             return;
         }
         const filteredConversations = conversations.filter((c) => {
@@ -18,7 +20,7 @@ const SearchInput = () => {
             return fullname.includes(search.toLocaleLowerCase());
         });
         if (filteredConversations) {
-            setDisplayedConversations(filteredConversations);
+            dispatch(setDisplayedConversations(filteredConversations));
             setSearch("");
         } else {
             toast.error("No such user found!");

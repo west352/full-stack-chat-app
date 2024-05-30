@@ -1,10 +1,10 @@
 import { useAuthContext } from '../../context/AuthContext';
-import useConversation from '../../zustand/useConversation';
+import { useSelector } from 'react-redux';
 import { extractTime } from '../../utils/extractTime';
 
 const Message = ({ message }) => {
     const { authUser } = useAuthContext();
-    const { selectedConversation } = useConversation();
+    let selectedConversation = useSelector((state) => state.selectedConversation);
     const fromMe = message.senderId === authUser._id;
     const chatClassName = fromMe ? 'chat-end' : 'chat-start';
     const profilePic = fromMe ? authUser.profilePic : selectedConversation?.profilePic;

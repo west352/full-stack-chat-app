@@ -1,17 +1,19 @@
 import Messages from './Messages';
 import MessageInput from './MessageInput';
 import { TiMessages } from "react-icons/ti";
-import useConversation from '../../zustand/useConversation';
+import { setSelectedConversation } from '../../redux/actions/conversationActions';
 import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useAuthContext } from '../../context/AuthContext';
 
 const MessageContainer = () => {
-    const { selectedConversation, setSelectedConversation } = useConversation();
+    let selectedConversation = useSelector((state) => state.selectedConversation);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         // clean up function (unmounts component)
-        return () => setSelectedConversation(null);
-    }, [setSelectedConversation]);
+        return () => dispatch(setSelectedConversation(null));
+    }, [dispatch]);
     return (
         <div className='md:min-w-[450px] flex flex-col'>
             {!selectedConversation ? (

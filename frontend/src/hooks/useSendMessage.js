@@ -1,10 +1,13 @@
 import { useState } from "react";
-import useConversation from "../zustand/useConversation";
+import { setMessages } from "../redux/actions/conversationActions";
+import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 
 const useSendMessage = () => {
     const [loading, setLoading] = useState(false);
-    const { messages, setMessages, selectedConversation } = useConversation();
+    let messages = useSelector((state) => state.messages);
+    let selectedConversation = useSelector((state) => state.selectedConversation);
+    const dispatch = useDispatch();
 
     const sendMessage = async (message) => {
         setLoading(true);
@@ -19,7 +22,7 @@ const useSendMessage = () => {
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            setMessages([...messages, data]);
+            dispatch(setMessages([...messages, data]));
         } catch (error) {
             toast.error(error.message);
         } finally {
