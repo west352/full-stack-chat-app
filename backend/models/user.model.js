@@ -18,15 +18,19 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    // googleId is unique for each google user
+    googleId: {
+        type: String,
+        unique: true,
+    },
     password: {
         type: String,
-        required: true,
         minlength: 6
     },
     gender: {
         type: String,
         required: true,
-        enum: ["male", "female", "others"]
+        enum: ["male", "female", "others", "unknown"]
     },
     profilePic: {
         type: String,

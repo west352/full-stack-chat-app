@@ -13,6 +13,15 @@ const Login = () => {
         await login(username, password);
     }
 
+    const auth = async () => {
+        const response = await fetch("http://127.0.0.1:8000/api/auth/oauth", {
+            method: "post"
+        });
+        const data = await response.json();
+        console.log(data);
+        window.location.href = data.url;
+    }
+
     return (
         <div className='flex flex-col items-center justify-center min-w-96 mx-auto shadow-xl'>
             <div className='card w-96 bg-neutral text-neutral-content p-6 rounded-lg'>
@@ -56,6 +65,9 @@ const Login = () => {
                         </button>
                     </div>
                 </form>
+                <button type="button" onClick={() => auth()}>
+                    google sign in
+                </button>
             </div>
         </div>
     )
