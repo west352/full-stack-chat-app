@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import useLogin from '../../hooks/useLogin';
+import googleIcon from "../../assets/svg/neutral/web_neutral_sq_SI.svg";
 
 const Login = () => {
 
@@ -14,10 +15,6 @@ const Login = () => {
     }
 
     const auth = async () => {
-        /* const response = await fetch("http://127.0.0.1:8000/api/auth/google");
-        const data = await response.json();
-        console.log(data);
-        window.location.href = data.url; */
         window.open("http://localhost:8000/api/auth/google", "_self");
     }
 
@@ -64,8 +61,8 @@ const Login = () => {
                         </button>
                     </div>
                 </form>
-                <button type="button" onClick={() => auth()}>
-                    google sign in
+                <button className='justify-center pt-4 inline-flex w-1/2' type="button" onClick={() => auth()}>
+                    <img src={googleIcon} alt="Sign in with Google" />
                 </button>
             </div>
         </div>
