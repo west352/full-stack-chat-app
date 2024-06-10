@@ -1,6 +1,6 @@
 import express from "express";
-import { signup, login, logout, postOAuth, getOAuth, getUser } from "../controllers/auth.controller.js";
-import protectRoute from "../middleware/protectRoute.js";
+import { signup, login, logout, verifyOAuth, oAuthCallback } from "../controllers/auth.controller.js";
+import passport from "passport";
 
 const router = express.Router();
 
@@ -10,10 +10,20 @@ router.post("/login", login);
 
 router.post("/logout", logout);
 
-router.post("/oauth", postOAuth);
+router.get("/login/failed", (req, res) => {
+    res.status(401).json({
+        success: false,
+        message: "failure",
+    });
+});
 
-router.get("/oauth", getOAuth);
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], prompt: "consent" }));
 
-router.get("/status", protectRoute, getUser);
+router.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login', session: false }),
+    oAuthCallback
+);
+
+router.get('/verify', verifyOAuth);
 
 export default router;

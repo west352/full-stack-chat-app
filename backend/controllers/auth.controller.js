@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.model.js";
-import { generateTokenAndSetCookie, setCookieForOAuth } from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
+import { generateTokenAndSetCookie } from "../utils/generateToken.js";
 
 dotenv.config();
 
@@ -81,7 +81,53 @@ export const logout = (req, res) => {
     }
 }
 
-export const postOAuth = async (req, res) => {
+export const oAuthCallback = (req, res) => {
+    // On success, set the JWT token in an HTTP-only cookie
+    res.cookie('jwt', req.user.token, {
+        maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+        httpOnly: true, // Prevent access from JavaScript
+        secure: process.env.NODE_ENV !== 'development', // Set secure to true in production
+        sameSite: 'strict', // Prevent CSRF
+    });
+
+    // Redirect to frontend
+    res.redirect('http://localhost:5173/auth-callback');
+}
+
+export const verifyOAuth = async (req, res) => {
+    try {
+        const token = req.cookies.jwt;
+        console.log("jwt", token);
+        if (!token) {
+            return res.status(401).json({ error: "Unauthorized - No Token Provided" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRETE);
+        if (!decoded) {
+            return res.status(401).json({ error: "Unauthorized - Invalid Token" });
+        }
+
+        const user = await User.findById(decoded.userId);
+        console.log("user", user);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.status(200).json({
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            username: user.username,
+            profilePic: user.profilePic
+        });
+    } catch (error) {
+        console.log("Error in verify middleware: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+/* export const postOAuth = async (req, res) => {
     res.header("Access-Control-Allow-Origin", "http://localhost:5173");
     res.header("Referrer-Policy", "no-referrer-when-downgrade");
 
@@ -158,4 +204,4 @@ export const getUser = async (req, res) => {
         console.log("error in getUser", error);
         res.status(400).json({ error: "Internal server error" });
     }
-}
+} */

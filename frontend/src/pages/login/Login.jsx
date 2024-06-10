@@ -14,12 +14,11 @@ const Login = () => {
     }
 
     const auth = async () => {
-        const response = await fetch("http://127.0.0.1:8000/api/auth/oauth", {
-            method: "post"
-        });
+        /* const response = await fetch("http://127.0.0.1:8000/api/auth/google");
         const data = await response.json();
         console.log(data);
-        window.location.href = data.url;
+        window.location.href = data.url; */
+        window.open("http://localhost:8000/api/auth/google", "_self");
     }
 
     return (
