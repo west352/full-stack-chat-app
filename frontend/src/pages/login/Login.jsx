@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import useLogin from '../../hooks/useLogin';
+import { IoMdChatbubbles } from "react-icons/io";
 import googleIcon from "../../assets/svg/neutral/web_neutral_sq_SI.svg";
 
 const Login = () => {
@@ -21,11 +22,13 @@ const Login = () => {
     return (
         <div className='flex flex-col items-center justify-center min-w-96 mx-auto shadow-xl'>
             <div className='card w-96 bg-neutral text-neutral-content p-6 rounded-lg'>
-                <h1 className='text-3xl font-semibold text-center text-gray-300'>
-                    Login
-                    <span className='text-blue-500'> ChatApp</span>
-                </h1>
-
+                <div className='flex justify-center'>
+                    <IoMdChatbubbles className='w-10 h-10 text-sky-500 inline pr-2' />
+                    <h1 className='text-3xl font-semibold text-center text-gray-300'>
+                        Login
+                        <span className='text-blue-500'> ChatApp</span>
+                    </h1>
+                </div>
                 <form onSubmit={handleSubmit}>
                     <div>
                         <label className='label p-2'>
