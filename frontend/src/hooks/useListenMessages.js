@@ -7,17 +7,23 @@ import { useSelector, useDispatch } from 'react-redux';
 const useListenMessages = () => {
     const { socket } = useSocketContext();
     let messages = useSelector((state) => state.messages);
+    const senderId = messages[0]?.senderId;
+    const receiverId = messages[0]?.receiverId;
     const dispatch = useDispatch();
 
     useEffect(() => {
         socket?.on("newMessage", (newMessage) => {
-            newMessage.shouldShake = true;
-            const sound = new Audio(notification);
-            sound.play();
-            dispatch(setMessages([...messages, newMessage]));
+            const newMessageSID = newMessage.senderId;
+            const newMessageRID = newMessage.receiverId;
+            if (newMessageSID === receiverId && newMessageRID === senderId) {
+                newMessage.shouldShake = true;
+                const sound = new Audio(notification);
+                sound.play();
+                dispatch(setMessages([...messages, newMessage]));
+            }
         });
         return () => socket?.off("newMessage");
-    }, [socket, messages, dispatch]);
+    }, [socket, messages, dispatch, senderId, receiverId]);
 }
 
 export default useListenMessages;
