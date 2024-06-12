@@ -1,13 +1,10 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-
-// Define __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { s3Client } from "../aws/awsConfig.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { generateFileName } from "../utils/generateFileName.js";
+import File from "../models/file.model.js";
 
 export const sendMessage = async (req, res) => {
     try {
@@ -16,21 +13,20 @@ export const sendMessage = async (req, res) => {
         const senderId = req.user._id;
 
         // if message is a file
+        let fileSize;
         const { name: fileName, type: fileType, data: fileData } = message;
-        if (fileName) {
-            const currentDir = __dirname;
-            const parentDir = path.resolve(currentDir, "..");
-            const filePath = parentDir + "/uploads/" + fileName;
+        if (fileName && fileType && fileData) {
             const bufferData = Buffer.from(fileData.split(",")[1], 'base64');
-            fs.writeFile(filePath, bufferData, (error) => {
-                if (error) {
-                    throw new Error(error);
-                } else {
-                    console.log("file saved" + filePath);
-                }
-            });
+            fileSize = bufferData.length;
+            const uploadParams = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Body: bufferData,
+                Key: generateFileName(fileType),
+                ContentType: fileType
+            }
 
-            throw new Error("test");
+            // send the file to S3
+            await s3Client.send(new PutObjectCommand(uploadParams));
         }
 
         let conversation = await Conversation.findOne({
@@ -43,11 +39,30 @@ export const sendMessage = async (req, res) => {
             })
         }
 
-        const newMessage = new Message({
-            senderId,
-            receiverId,
-            message
-        });
+        let newMessage;
+        if (fileName && fileType && fileData) {
+            const newFile = new File({
+                s3Name: generateFileName(fileType),
+                originalName: fileName,
+                type: fileType,
+                size: fileSize
+            });
+            newMessage = new Message({
+                senderId,
+                receiverId,
+                file: newFile._id
+            });
+            await newFile.save();
+        } else {
+            newMessage = new Message({
+                senderId,
+                receiverId,
+                message
+            });
+        }
+
+        console.log(newMessage);
+
         conversation.messages.push(newMessage._id);
         await Promise.all([newMessage.save(), conversation.save()]);
 

@@ -9,7 +9,6 @@ import userRoutes from "./routes/user.routes.js";
 import connectToMongoDB from "./db/connectToMongoDB.js";
 import { app, server } from "./socket/socket.js";
 import passport from "passport";
-//import passportSetup from "./routes/passport-setup.js";
 import "./routes/passport-setup.js";
 import cors from "cors";
 
@@ -22,7 +21,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
 app.use(passport.initialize());
-//app.use(passport.session());
+
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: "GET,POST,PUT,DELETE",

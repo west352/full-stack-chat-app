@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 
 const fileSchema = new mongoose.Schema({
-    url: {
+    // name uploaded to s3 bucket
+    s3Name: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    originalName: {
         type: String,
         required: true
     },
