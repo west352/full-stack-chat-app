@@ -1,12 +1,37 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+// Define __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const sendMessage = async (req, res) => {
     try {
         const { message } = req.body;
         const { id: receiverId } = req.params;
         const senderId = req.user._id;
+
+        // if message is a file
+        const { name: fileName, type: fileType, data: fileData } = message;
+        if (fileName) {
+            const currentDir = __dirname;
+            const parentDir = path.resolve(currentDir, "..");
+            const filePath = parentDir + "/uploads/" + fileName;
+            const bufferData = Buffer.from(fileData.split(",")[1], 'base64');
+            fs.writeFile(filePath, bufferData, (error) => {
+                if (error) {
+                    throw new Error(error);
+                } else {
+                    console.log("file saved" + filePath);
+                }
+            });
+
+            throw new Error("test");
+        }
 
         let conversation = await Conversation.findOne({
             participants: { $all: [senderId, receiverId] }

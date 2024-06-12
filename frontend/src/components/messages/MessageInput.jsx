@@ -13,6 +13,20 @@ const MessageInput = () => {
         await sendMessage(message);
         setMessage("");
     }
+
+    const sendFile = (e) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(e.target.files[0]);
+        reader.onload = async () => {
+            const fileInfo = {
+                name: e.target.files[0].name,
+                type: e.target.files[0].type,
+                data: reader.result,
+            };
+            await sendMessage(fileInfo);
+        }
+    }
+
     return (
         <form className='px-4 my-3 flex' onSubmit={handleSubmit}>
             <div className='w-11/12'>
@@ -27,9 +41,10 @@ const MessageInput = () => {
             <button type='submit' className='inset-y-0 end-0 flex items-center ps-2 pe-2'>
                 {loading ? <div className='loading loading-spinner'></div> : <BsSendFill />}
             </button>
-            <button className='inset-y-0 end-0 flex items-center'>
+            <label className='inset-y-0 end-0 flex items-center cursor-pointer'>
+                <input type="file" className='hidden' onChange={sendFile} />
                 {loading ? <div className='loading loading-spinner'></div> : <FaUpload />}
-            </button>
+            </label>
         </form>
     );
 };

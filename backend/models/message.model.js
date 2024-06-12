@@ -12,10 +12,18 @@ const messageSchema = new mongoose.Schema({
         required: true
     },
     message: {
-        type: String,
-        required: true
+        type: String
+    },
+    file: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "File"
     }
 }, { timestamps: true });
+
+// validation function to ensure that either message of file field is present
+messageSchema.path('message').validate(function (value) {
+    return value || this.file;
+}, 'Either message or file field is required.');
 
 const Message = mongoose.model("Message", messageSchema);
 
