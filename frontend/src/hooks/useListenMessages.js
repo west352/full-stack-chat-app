@@ -22,6 +22,7 @@ const useListenMessages = () => {
                 dispatch(setMessages([...messages, newMessage]));
             }
         });
+        // clean up function to remove listener so sounds won't play multiple times
         return () => socket?.off("newMessage");
     }, [socket, messages, dispatch, senderId, receiverId]);
 }
