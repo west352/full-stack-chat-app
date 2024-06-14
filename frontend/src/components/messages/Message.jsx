@@ -9,6 +9,7 @@ const Message = ({ message }) => {
     const fromMe = message.senderId === authUser._id;
     const chatClassName = fromMe ? 'chat-end' : 'chat-start';
     const profilePic = fromMe ? authUser.profilePic : selectedConversation?.profilePic;
+    const messageLocation = fromMe ? "justify-end" : "justify-start";
     let bubbleColor = fromMe ? 'bg-blue-500' : 'bg-slate-500';
     const formattedTime = extractTime(message.createdAt);
     const shakeClass = message.shouldShake ? "shake" : "";
@@ -21,7 +22,7 @@ const Message = ({ message }) => {
         const fileType = originalFileName.split(".")[1];
         if (imageTypes.includes(fileType)) {
             fileLinkComponent = (
-                <a href={fileLink} target="_blank" rel="noopener noreferrer" className="flex justify-end">
+                <a href={fileLink} target="_blank" rel="noopener noreferrer" className={`flex ${messageLocation}`}>
                     <img src={fileLink} alt="image sent" className="cursor-pointer w-9/12 object-cover" />
                 </a>
             );
