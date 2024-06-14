@@ -3,7 +3,7 @@ import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 
 import { s3Client } from "../aws/awsConfig.js";
-import { PutObjectCommand, GetObjectAclCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { generateFileName } from "../utils/generateFileName.js";
@@ -66,7 +66,6 @@ export const sendMessage = async (req, res) => {
                 Bucket: process.env.S3_BUCKET_NAME,
                 Key: newFile.s3Name
             }), { expiresIn: 60 });
-            console.log(fileUrl);
         }
 
         conversation.messages.push(newMessage._id);
@@ -76,6 +75,7 @@ export const sendMessage = async (req, res) => {
         if (newMessage.file) {
             newMessage = newMessage.toObject();
             newMessage.file = fileUrl;
+            newMessage.originalFileName = fileName;
         }
 
         //SocketIo functionality
@@ -102,22 +102,24 @@ export const getMessages = async (req, res) => {
         }).populate("messages"); // not references but actual message documents
 
         let messages = conversation?.messages;
-        messages = await Promise.all(messages.map(async (message) => {
-            if (message.file) {
-                message = message.toObject();
-                const file = await File.findById(message.file._id);
-                const s3Name = file.s3Name;
-                const originalFileName = file.originalName;
+        if (messages) {
+            messages = await Promise.all(messages?.map(async (message) => {
+                if (message.file) {
+                    message = message.toObject();
+                    const file = await File.findById(message.file._id);
+                    const s3Name = file.s3Name;
+                    const originalFileName = file.originalName;
 
-                const fileUrl = await getSignedUrl(s3Client, new GetObjectCommand({
-                    Bucket: process.env.S3_BUCKET_NAME,
-                    Key: s3Name
-                }), { expiresIn: 600 });
-                message.file = fileUrl;
-                message.originalFileName = originalFileName;
-            }
-            return message;
-        }));
+                    const fileUrl = await getSignedUrl(s3Client, new GetObjectCommand({
+                        Bucket: process.env.S3_BUCKET_NAME,
+                        Key: s3Name
+                    }), { expiresIn: 600 });
+                    message.file = fileUrl;
+                    message.originalFileName = originalFileName;
+                }
+                return message;
+            }));
+        }
 
         res.status(200).json(messages || []);
     } catch (error) {

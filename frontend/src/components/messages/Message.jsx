@@ -9,16 +9,33 @@ const Message = ({ message }) => {
     const fromMe = message.senderId === authUser._id;
     const chatClassName = fromMe ? 'chat-end' : 'chat-start';
     const profilePic = fromMe ? authUser.profilePic : selectedConversation?.profilePic;
-    const bubbleColor = fromMe ? 'bg-blue-500' : 'bg-slate-500';
+    let bubbleColor = fromMe ? 'bg-blue-500' : 'bg-slate-500';
     const formattedTime = extractTime(message.createdAt);
     const shakeClass = message.shouldShake ? "shake" : "";
 
-    const originalFileName = message.originalFileName;
     const fileLink = message.file;
-    const fileLinkComponent = (<a className='flex underline underline-offset-8' href={`${fileLink}`} target="_blank">
-        <IoIosLink />
-        {originalFileName}
-    </a>);
+    const originalFileName = message.originalFileName;
+    let fileLinkComponent;
+    if (fileLink && originalFileName) {
+        const imageTypes = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg", "webp"];
+        const fileType = originalFileName.split(".")[1];
+        if (imageTypes.includes(fileType)) {
+            fileLinkComponent = (
+                <a href={fileLink} target="_blank" rel="noopener noreferrer" className="flex justify-end">
+                    <img src={fileLink} alt="image sent" className="cursor-pointer w-9/12 object-cover" />
+                </a>
+            );
+            bubbleColor = "";
+        } else {
+            fileLinkComponent = (<a className='flex underline underline-offset-8'
+                href={fileLink}
+                target="_blank"
+                rel="noopener noreferrer">
+                <IoIosLink />
+                {originalFileName}
+            </a>);
+        }
+    }
 
     return (
         <div className={`chat ${chatClassName}`}>

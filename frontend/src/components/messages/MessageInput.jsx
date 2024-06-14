@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BsSendFill } from "react-icons/bs";
 import { FaUpload } from "react-icons/fa6";
 import useSendMessage from "../../hooks/useSendMessage";
+import toast from 'react-hot-toast';
 
 const MessageInput = () => {
     const [message, setMessage] = useState("");
@@ -15,15 +16,23 @@ const MessageInput = () => {
     }
 
     const sendFile = (e) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(e.target.files[0]);
-        reader.onload = async () => {
-            const fileInfo = {
-                name: e.target.files[0].name,
-                type: e.target.files[0].type,
-                data: reader.result,
-            };
-            await sendMessage(fileInfo);
+        try {
+            const file = e.target.files[0];
+            if (file.size > 10000000) {
+                throw new Error("can not send files larger than 10mb");
+            }
+            const reader = new FileReader();
+            reader.readAsDataURL(e.target.files[0]);
+            reader.onload = async () => {
+                const fileInfo = {
+                    name: file.name,
+                    type: file.type,
+                    data: reader.result,
+                };
+                await sendMessage(fileInfo);
+            }
+        } catch (error) {
+            toast.error(error.message);
         }
     }
 
