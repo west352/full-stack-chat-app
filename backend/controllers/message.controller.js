@@ -1,8 +1,11 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+
 import { s3Client } from "../aws/awsConfig.js";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectAclCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 import { generateFileName } from "../utils/generateFileName.js";
 import File from "../models/file.model.js";
 
@@ -11,23 +14,6 @@ export const sendMessage = async (req, res) => {
         const { message } = req.body;
         const { id: receiverId } = req.params;
         const senderId = req.user._id;
-
-        // if message is a file
-        let fileSize;
-        const { name: fileName, type: fileType, data: fileData } = message;
-        if (fileName && fileType && fileData) {
-            const bufferData = Buffer.from(fileData.split(",")[1], 'base64');
-            fileSize = bufferData.length;
-            const uploadParams = {
-                Bucket: process.env.S3_BUCKET_NAME,
-                Body: bufferData,
-                Key: generateFileName(fileType),
-                ContentType: fileType
-            }
-
-            // send the file to S3
-            await s3Client.send(new PutObjectCommand(uploadParams));
-        }
 
         let conversation = await Conversation.findOne({
             participants: { $all: [senderId, receiverId] }
@@ -39,10 +25,32 @@ export const sendMessage = async (req, res) => {
             })
         }
 
-        let newMessage;
+        let newMessage = new Message({
+            senderId,
+            receiverId,
+            message
+        });
+
+        // if message is a file
+        let fileSize;
+        let fileUrl;
+        const { name: fileName, type: fileType, data: fileData } = message;
         if (fileName && fileType && fileData) {
+            let s3Name = generateFileName(fileType);
+            const bufferData = Buffer.from(fileData.split(",")[1], 'base64');
+            fileSize = bufferData.length;
+            const uploadParams = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Body: bufferData,
+                Key: s3Name,
+                ContentType: fileType
+            }
+
+            // send the file to S3
+            await s3Client.send(new PutObjectCommand(uploadParams));
+
             const newFile = new File({
-                s3Name: generateFileName(fileType),
+                s3Name,
                 originalName: fileName,
                 type: fileType,
                 size: fileSize
@@ -53,18 +61,22 @@ export const sendMessage = async (req, res) => {
                 file: newFile._id
             });
             await newFile.save();
-        } else {
-            newMessage = new Message({
-                senderId,
-                receiverId,
-                message
-            });
-        }
 
-        console.log(newMessage);
+            fileUrl = await getSignedUrl(s3Client, new GetObjectCommand({
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: newFile.s3Name
+            }), { expiresIn: 60 });
+            console.log(fileUrl);
+        }
 
         conversation.messages.push(newMessage._id);
         await Promise.all([newMessage.save(), conversation.save()]);
+
+        // send the file url from s3 instead of the file id from database to the frontend
+        if (newMessage.file) {
+            newMessage = newMessage.toObject();
+            newMessage.file = fileUrl;
+        }
 
         //SocketIo functionality
         const receiverSocketId = getReceiverSocketId(receiverId);
@@ -89,7 +101,25 @@ export const getMessages = async (req, res) => {
             participants: { $all: [senderId, id] }
         }).populate("messages"); // not references but actual message documents
 
-        res.status(200).json(conversation?.messages || []);
+        let messages = conversation?.messages;
+        messages = await Promise.all(messages.map(async (message) => {
+            if (message.file) {
+                message = message.toObject();
+                const file = await File.findById(message.file._id);
+                const s3Name = file.s3Name;
+                const originalFileName = file.originalName;
+
+                const fileUrl = await getSignedUrl(s3Client, new GetObjectCommand({
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Key: s3Name
+                }), { expiresIn: 600 });
+                message.file = fileUrl;
+                message.originalFileName = originalFileName;
+            }
+            return message;
+        }));
+
+        res.status(200).json(messages || []);
     } catch (error) {
         console.log("Error in getMessage controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });

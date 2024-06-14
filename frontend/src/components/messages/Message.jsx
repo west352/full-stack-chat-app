@@ -1,6 +1,7 @@
 import { useAuthContext } from '../../context/AuthContext';
 import { useSelector } from 'react-redux';
 import { extractTime } from '../../utils/extractTime';
+import { IoIosLink } from "react-icons/io";
 
 const Message = ({ message }) => {
     const { authUser } = useAuthContext();
@@ -12,8 +13,12 @@ const Message = ({ message }) => {
     const formattedTime = extractTime(message.createdAt);
     const shakeClass = message.shouldShake ? "shake" : "";
 
-    // add to render uploaded file name only temporarily
-    const renderedMessage = message.message ? message.message : message.file;
+    const originalFileName = message.originalFileName;
+    const fileLink = message.file;
+    const fileLinkComponent = (<a className='flex underline underline-offset-8' href={`${fileLink}`} target="_blank">
+        <IoIosLink />
+        {originalFileName}
+    </a>);
 
     return (
         <div className={`chat ${chatClassName}`}>
@@ -23,7 +28,9 @@ const Message = ({ message }) => {
                         src={profilePic} />
                 </div>
             </div>
-            <div className={`chat-bubble text-white ${bubbleColor} pb-2 ${shakeClass}`}>{renderedMessage}</div>
+            <div className={`chat-bubble text-white ${bubbleColor} pb-2 ${shakeClass}`}>
+                {message.message ? message.message : fileLinkComponent}
+            </div>
             <div className='chat-footer opacity-50 text-xs flex gap-1 items-center'>{formattedTime}</div>
         </div>
     );
