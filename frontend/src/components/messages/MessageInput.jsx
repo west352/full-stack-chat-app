@@ -18,18 +18,20 @@ const MessageInput = () => {
     const sendFile = (e) => {
         try {
             const file = e.target.files[0];
-            if (file.size > 10000000) {
+            if (file?.size > 10000000) {
                 throw new Error("can not send files larger than 10mb");
             }
-            const reader = new FileReader();
-            reader.readAsDataURL(e.target.files[0]);
-            reader.onload = async () => {
-                const fileInfo = {
-                    name: file.name,
-                    type: file.type,
-                    data: reader.result,
-                };
-                await sendMessage(fileInfo);
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    const fileInfo = {
+                        name: file.name,
+                        type: file.type,
+                        data: reader.result,
+                    };
+                    await sendMessage(fileInfo);
+                }
             }
         } catch (error) {
             toast.error(error.message);
