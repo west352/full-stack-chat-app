@@ -91,7 +91,7 @@ export const oAuthCallback = (req, res) => {
     });
 
     // Redirect to frontend
-    res.redirect('http://localhost:8000/auth-callback');
+    res.redirect('https://full-stack-chat-app-4amt.onrender.com/auth-callback');
 }
 
 export const verifyOAuth = async (req, res) => {

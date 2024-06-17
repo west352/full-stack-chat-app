@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:8000/api/auth/google/callback"
+    callbackURL: "https://full-stack-chat-app-4amt.onrender.com/api/auth/google/callback"
 },
     async (accessToken, refreshToken, profile, done) => {
         // Find or create the user in your database

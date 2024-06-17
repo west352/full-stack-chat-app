@@ -16,7 +16,7 @@ const Login = () => {
     }
 
     const auth = async () => {
-        window.open("http://localhost:8000/api/auth/google", "_self");
+        window.open("https://full-stack-chat-app-4amt.onrender.com/api/auth/google", "_self");
     }
 
     return (
