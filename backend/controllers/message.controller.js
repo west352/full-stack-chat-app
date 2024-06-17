@@ -11,6 +11,8 @@ import File from "../models/file.model.js";
 
 export const sendMessage = async (req, res) => {
     try {
+        console.log(process.env.S3_ACCESS_KEY);
+        console.log(process.env.S3_SECRET_KEY);
         const { message } = req.body;
         const { id: receiverId } = req.params;
         const senderId = req.user._id;
@@ -94,6 +96,8 @@ export const sendMessage = async (req, res) => {
 
 export const getMessages = async (req, res) => {
     try {
+        console.log(process.env.S3_ACCESS_KEY);
+        console.log(process.env.S3_SECRET_KEY);
         const { id } = req.params;
         const senderId = req.user._id;
 
