@@ -2,7 +2,7 @@ import './App.css'
 import Home from './pages/home/Home';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/login/Login.jsx';
-import SignUp from './pages/signup/SignUp.jsx';
+import SignUp from './pages/signup/Signup.jsx';
 import { Toaster } from 'react-hot-toast';
 import { useAuthContext } from './context/AuthContext.jsx';
 import AuthHandler from './pages/login/AuthHandler.jsx';
